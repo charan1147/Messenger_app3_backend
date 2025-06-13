@@ -1,28 +1,9 @@
 import { Server } from 'socket.io';
 
-const userSocketMap = new Map();
-
-export const registerSocket = (userId, socket) => {
-  userSocketMap.set(userId, socket.id);
-};
-
-export const removeSocket = (socketId) => {
-  for (const [userId, id] of userSocketMap.entries()) {
-    if (id === socketId) {
-      userSocketMap.delete(userId);
-      break;
-    }
-  }
-};
-
-export const getSocketIdByUserId = (userId) => {
-  return userSocketMap.get(userId);
-};
-
 export const setupSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin:process.env.FRONTEND_URL,
+      origin: process.env.FRONTEND_URL,
       credentials: true,
     },
   });
@@ -30,47 +11,38 @@ export const setupSocket = (server) => {
   io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
 
-    socket.on('register', (userId) => {
-      registerSocket(userId, socket);
-      console.log(`User ${userId} registered with socket ${socket.id}`);
+    // ✅ Join private room (caller and receiver both should emit this)
+    socket.on('joinRoom', ({ roomId }) => {
+      socket.join(roomId);
+      console.log(`Socket ${socket.id} joined room ${roomId}`);
+    });
+
+    // ✅ Send message
+    socket.on('sendMessage', ({ roomId, senderId, content }) => {
+      socket.to(roomId).emit('receiveMessage', { senderId, content });
+    });
+
+    // ✅ Call initiated
+    socket.on('callUser', ({ roomId, signalData, from, isVideo }) => {
+      socket.to(roomId).emit('call:user', {
+        signal: signalData,
+        from,
+        isVideo,
+      });
+    });
+
+    // ✅ Call answered
+    socket.on('answerCall', ({ roomId, signal }) => {
+      socket.to(roomId).emit('call:accepted', { signal });
+    });
+
+    // ✅ Call ended
+    socket.on('endCall', ({ roomId }) => {
+      socket.to(roomId).emit('call:ended');
     });
 
     socket.on('disconnect', () => {
-      removeSocket(socket.id);
       console.log('User disconnected:', socket.id);
-    });
-
-    socket.on('sendMessage', ({ senderId, receiverId, content }) => {
-      const receiverSocketId = getSocketIdByUserId(receiverId);
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit('receiveMessage', { senderId, content });
-      }
-    });
-
-    socket.on('callUser', ({ userToCall, signalData, from, isVideo }) => {
-      const socketId = getSocketIdByUserId(userToCall);
-      if (socketId) {
-        io.to(socketId).emit('call:user', {
-          signal: signalData,
-          from,
-          isVideo, // ✅ Include this so the receiver knows it's audio/video
-        });
-      }
-    });
-    
-
-    socket.on('answerCall', ({ to, signal }) => {
-      const socketId = getSocketIdByUserId(to);
-      if (socketId) {
-        io.to(socketId).emit('call:accepted', { signal });
-      }
-    });
-
-    socket.on('endCall', ({ to }) => {
-      const socketId = getSocketIdByUserId(to);
-      if (socketId) {
-        io.to(socketId).emit('call:ended');
-      }
     });
   });
 
