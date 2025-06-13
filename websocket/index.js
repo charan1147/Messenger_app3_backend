@@ -47,12 +47,17 @@ export const setupSocket = (server) => {
       }
     });
 
-    socket.on('callUser', ({ userToCall, signalData, from }) => {
+    socket.on('callUser', ({ userToCall, signalData, from, isVideo }) => {
       const socketId = getSocketIdByUserId(userToCall);
       if (socketId) {
-        io.to(socketId).emit('call:user', { signal: signalData, from });
+        io.to(socketId).emit('call:user', {
+          signal: signalData,
+          from,
+          isVideo, // ✅ Include this so the receiver knows it's audio/video
+        });
       }
     });
+    
 
     socket.on('answerCall', ({ to, signal }) => {
       const socketId = getSocketIdByUserId(to);
