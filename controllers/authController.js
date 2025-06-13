@@ -22,6 +22,7 @@ export const registerUser = async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: 'None',
     });
 
     res.status(201).json({ user: { id: user._id, name, email } });
@@ -46,6 +47,7 @@ export const loginUser = async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: 'None',
     });
 
     res.json({ user: { id: user._id, name: user.name, email: user.email } });
