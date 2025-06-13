@@ -19,11 +19,12 @@ export const registerUser = async (req, res) => {
     });
 
     const token = generateToken(user._id);
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'None',
-    });
+   res.cookie('token', token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'None',
+});
+
 
     res.status(201).json({ user: { id: user._id, name, email } });
   } catch (err) {
@@ -44,11 +45,12 @@ export const loginUser = async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
     const token = generateToken(user._id);
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'None',
-    });
+   res.cookie('token', token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'None',
+});
+
 
     res.json({ user: { id: user._id, name: user.name, email: user.email } });
   } catch (err) {
