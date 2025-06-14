@@ -1,48 +1,53 @@
-import { Server } from 'socket.io';
+import { Server } from "socket.io";
 
 export const setupSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: process.env.FRONTEND_URL,
+      origin: process.env.FRONTEND_URL, // e.g., http://localhost:5173 or Netlify/Render domain
       credentials: true,
     },
   });
 
-  io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
+  io.on("connection", (socket) => {
+    console.log("✅ New client connected:", socket.id);
 
-    // ✅ Join private room (caller and receiver both should emit this)
-    socket.on('joinRoom', ({ roomId }) => {
+    // ✅ Join private room
+    socket.on("joinRoom", ({ roomId }) => {
       socket.join(roomId);
-      console.log(`Socket ${socket.id} joined room ${roomId}`);
+      console.log(`📥 Socket ${socket.id} joined room: ${roomId}`);
     });
 
-    // ✅ Send message
-    socket.on('sendMessage', ({ roomId, senderId, content }) => {
-      socket.to(roomId).emit('receiveMessage', { senderId, content });
+    // ✅ Send chat message
+    socket.on("sendMessage", ({ roomId, senderId, content }) => {
+      socket.to(roomId).emit("receiveMessage", { senderId, content });
     });
 
-    // ✅ Call initiated
-    socket.on('callUser', ({ roomId, signalData, from, isVideo }) => {
-      socket.to(roomId).emit('call:user', {
+    // ✅ Initiate call
+    socket.on("callUser", ({ roomId, signalData, from, isVideo }) => {
+      console.log(`📞 ${from} is calling in room ${roomId}`);
+      socket.to(roomId).emit("call:user", {
         signal: signalData,
         from,
         isVideo,
       });
     });
 
-    // ✅ Call answered
-    socket.on('answerCall', ({ roomId, signal }) => {
-      socket.to(roomId).emit('call:accepted', { signal });
+    // ✅ Accept call
+    socket.on("answerCall", ({ roomId, signal }) => {
+      console.log(`✅ Call answered in room ${roomId}`);
+      socket.to(roomId).emit("call:accepted", { signal });
     });
 
-    // ✅ Call ended
-    socket.on('endCall', ({ roomId }) => {
-      socket.to(roomId).emit('call:ended');
+    // ✅ End call
+    socket.on("endCall", ({ roomId }) => {
+      console.log(`❌ Call ended in room ${roomId}`);
+      socket.to(roomId).emit("call:ended");
     });
 
-    socket.on('disconnect', () => {
-      console.log('User disconnected:', socket.id);
+    // ✅ Cleanup on disconnect
+    socket.on("disconnect", () => {
+      console.log("❌ Client disconnected:", socket.id);
+      // Optionally broadcast a cleanup event to others
     });
   });
 
