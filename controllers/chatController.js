@@ -18,7 +18,10 @@ export const sendMessage = async (req, res) => {
 export const getMessages = async (req, res) => {
   try {
     const { contactId } = req.params;
-    const userId = req.user._id;
+    const userId = req.userId;  // 👈 use userId here
+
+    console.log("🔍 userId:", userId);
+    console.log("🔍 contactId:", contactId);
 
     const messages = await Message.find({
       $or: [
@@ -27,12 +30,12 @@ export const getMessages = async (req, res) => {
       ],
     })
       .sort({ createdAt: 1 })
-      .populate('sender', 'name')
-      .populate('receiver', 'name');
+      .populate("sender", "name")
+      .populate("receiver", "name");
 
     res.json(messages);
   } catch (error) {
+    console.error("❌ ERROR in getMessages:", error);
     res.status(500).json({ message: error.message });
   }
 };
-
