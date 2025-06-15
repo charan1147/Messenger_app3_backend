@@ -3,7 +3,7 @@ import { Server } from "socket.io";
 export const setupSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: process.env.FRONTEND_URL, // e.g., http://localhost:5173 or Netlify/Render domain
+      origin: process.env.FRONTEND_URL, 
       credentials: true,
     },
   });

@@ -4,7 +4,7 @@ export const sendMessage = async (req, res) => {
   try {
     const { receiverId, content, type } = req.body;
     const message = await Message.create({
-      sender: req.userId,
+      sender: req.user._id,
       receiver: receiverId,
       content,
       type,
@@ -18,18 +18,21 @@ export const sendMessage = async (req, res) => {
 export const getMessages = async (req, res) => {
   try {
     const { contactId } = req.params;
+    const userId = req.user._id;
+
     const messages = await Message.find({
       $or: [
-        { sender: req.userId, receiver: contactId },
-        { sender: contactId, receiver: req.userId },
+        { sender: userId, receiver: contactId },
+        { sender: contactId, receiver: userId },
       ],
     })
       .sort({ createdAt: 1 })
-      .populate('sender', 'name')    // populate sender name only
-      .populate('receiver', 'name'); // populate receiver name only
+      .populate('sender', 'name')
+      .populate('receiver', 'name');
 
     res.json(messages);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
