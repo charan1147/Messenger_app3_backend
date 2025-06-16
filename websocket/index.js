@@ -1,15 +1,24 @@
 import { Server } from "socket.io";
 
+const userSocketMap = new Map(); // userId -> socketId mapping
+
 export const setupSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: process.env.FRONTEND_URL, 
+      origin: process.env.FRONTEND_URL,
       credentials: true,
     },
   });
 
   io.on("connection", (socket) => {
     console.log("✅ New client connected:", socket.id);
+
+    // ✅ Register userId with socket
+    socket.on("register", (userId) => {
+      userSocketMap.set(userId, socket.id);
+      socket.userId = userId; // Optional: useful for cleanup on disconnect
+      console.log(`🧾 Registered user ${userId} to socket ${socket.id}`);
+    });
 
     // ✅ Join private room
     socket.on("joinRoom", ({ roomId }) => {
@@ -46,8 +55,11 @@ export const setupSocket = (server) => {
 
     // ✅ Cleanup on disconnect
     socket.on("disconnect", () => {
+      if (socket.userId) {
+        userSocketMap.delete(socket.userId);
+        console.log(`🧹 Disconnected user ${socket.userId} (socket ${socket.id})`);
+      }
       console.log("❌ Client disconnected:", socket.id);
-      // Optionally broadcast a cleanup event to others
     });
   });
 

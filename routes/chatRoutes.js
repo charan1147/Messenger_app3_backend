@@ -4,7 +4,7 @@ import { sendMessage, getMessages } from '../controllers/chatController.js';
 
 const router = express.Router();
 
-router.post('/', verifyToken, sendMessage);
-router.get('/:contactId', verifyToken, getMessages);
+router.post('/', verifyToken, sendMessage);         // Send a message
+router.get('/:contactId', verifyToken, getMessages); // Get messages with a contact
 
 export default router;

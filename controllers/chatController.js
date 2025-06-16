@@ -18,10 +18,7 @@ export const sendMessage = async (req, res) => {
 export const getMessages = async (req, res) => {
   try {
     const { contactId } = req.params;
-    const userId = req.userId;  // 👈 use userId here
-
-    console.log("🔍 userId:", userId);
-    console.log("🔍 contactId:", contactId);
+    const userId = req.user._id; // ✅ use the same pattern
 
     const messages = await Message.find({
       $or: [
